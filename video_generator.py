@@ -84,7 +84,7 @@ def draw_frame(grid):
                 if cell_value in img_cache:
                     img.paste(img_cache[cell_value], (col * cell_size, row * cell_size), img_cache[cell_value])
                 else:
-                    cell_img = Image.open(cell_value).convert('RGBA').resize((cell_size, cell_size))
+                    cell_img = Image.open(cell_value).convert('RGBA').resize((cell_size, cell_size), Image.LANCZOS)
                     img_cache[cell_value] = cell_img
 
                     img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
