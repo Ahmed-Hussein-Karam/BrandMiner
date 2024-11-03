@@ -2,35 +2,39 @@ import os
 
 import random
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image
 from moviepy.editor import ImageSequenceClip
 from pathlib import Path
+
+# Literals
+BRAND = 'brand'
+SCENE = 'scene'
+EMPTY = 'empty'
 
 # Video Parameters
 hours = 0.02
 sec_per_hr = 3600
 frames_per_sec = 3
 frame_count =  int(hours * sec_per_hr * frames_per_sec)
+frame_size_px = 300
 grid_size = (9, 9)
+
 cell_count = grid_size[0] * grid_size[1]
+cell_size = frame_size_px // grid_size[0]  # Size of each cell in the grid
+cell_types = [BRAND, SCENE, EMPTY]
+cell_types_probabilities = [0.1, 0.8, 0.1]
 
-# Dfinitions and Constants
-max_enabled_brands_per_video = 5
-max_cell_ttl = frames_per_sec * 2
-cell_types = ['brand', 'scene', 'empty']
-cell_types_probabilities = [0.2, 0.7, 0.1]
-
-# When a cell ttl expires, a new random ttl is set for this cell
+# When a cell ttl expires, a new random ttl is set for that cell
 cell_ttl = [0 for _ in range(cell_count)]
 
-frame_size_px = 300
-cell_size = frame_size_px // grid_size[0]  # Size of each cell in the grid
+# Constants
+max_cell_ttl = frames_per_sec * 2
+max_enabled_brands_per_video = 5
+max_imgs_per_brand = 5
 
 # Paths
 base_path = os.getcwd()
 img_path = os.path.join(base_path, 'img')
-empty_img_path = os.path.join(img_path,'empty.png')
-empty_img = Image.open(empty_img_path).convert("RGBA").resize((cell_size, cell_size))
 
 brands_path = os.path.join(img_path, 'brands')
 scenes_path = os.path.join(img_path, 'scenes')
@@ -41,7 +45,7 @@ all_brands = [str(d) for d in Path(brands_path).iterdir() if d.is_dir()]
 brands_count = random.randint(1, min(len(all_brands), max_enabled_brands_per_video))
 brands = random.sample(all_brands, brands_count)
 
-brand_imgs = {f'{b}': [f for f in Path(os.path.join(brands_path, b)).iterdir() if f.is_file()] for b in brands}
+brand_imgs = {f'{b}': random.sample([f for f in Path(os.path.join(brands_path, b)).iterdir() if f.is_file()], max_imgs_per_brand) for b in brands}
 scene_imgs = {f'{s}': [f for f in Path(os.path.join(scenes_path, s)).iterdir() if f.is_file()] for s in scene_types}
 
 # Colors
@@ -58,10 +62,10 @@ def generate_random_grid(current_grid):
         cell_ttl[i] = random.randint(1, max_cell_ttl)
         current_grid[i] = random.choices(cell_types, weights=cell_types_probabilities, k=1)[0]
 
-        if current_grid[i] == 'brand':
+        if current_grid[i] == BRAND:
             random_brand = random.choice(brands)
             current_grid[i] = random.choice(brand_imgs[random_brand])
-        elif current_grid[i] == 'scene':
+        elif current_grid[i] == SCENE:
             random_scene_type = random.choice(scene_types)
             current_grid[i] = random.choice(scene_imgs[random_scene_type])
     
@@ -69,27 +73,19 @@ def generate_random_grid(current_grid):
 
 def draw_frame(grid):
     """Draws a single frame of the tic-tac-toe grid using image files for 'X' and 'O'."""
-    img = Image.new("RGB", (frame_size_px, frame_size_px), background_color)
-    draw = ImageDraw.Draw(img)
-
-    # Draw the grid lines
-    for i in range(1, grid_size[0]):  # Draw grid lines
-        draw.line((i * cell_size, 0, i * cell_size, frame_size_px), fill=line_color, width=3)
-        draw.line((0, i * cell_size, frame_size_px, i * cell_size), fill=line_color, width=3)
+    img = Image.new('RGB', (frame_size_px, frame_size_px), background_color)
 
     for row in range(grid_size[0]):
         for col in range(grid_size[1]):
             cell_value = grid[row * grid_size[1] + col]
-            if cell_value == 'empty':
-                img.paste(empty_img, (col * cell_size, row * cell_size), empty_img)
-            else:
-                cell_img = Image.open(cell_value).convert("RGBA").resize((cell_size, cell_size))
+            if cell_value != EMPTY:
+                cell_img = Image.open(cell_value).convert('RGBA').resize((cell_size, cell_size))
                 img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
     return img
 
 # Generate all frames
 frames = []
-initial_grid = ['empty' for _ in range(cell_count)]
+initial_grid = [EMPTY for _ in range(cell_count)]
 
 print (f"Frame count: {frame_count}")
 for i in range(frame_count):
