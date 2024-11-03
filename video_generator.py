@@ -34,10 +34,10 @@ max_imgs_per_brand = 5
 
 # Paths
 base_path = os.getcwd()
-img_path = os.path.join(base_path, 'img')
+media_path = os.path.join(base_path, 'media')
 
-brands_path = os.path.join(img_path, 'brands')
-scenes_path = os.path.join(img_path, 'scenes')
+brands_path = os.path.join(media_path, 'brands')
+scenes_path = os.path.join(media_path, 'scenes')
 
 scene_types = [str(d) for d in Path(scenes_path).iterdir() if d.is_dir()]
 all_brands = [str(d) for d in Path(brands_path).iterdir() if d.is_dir()]
