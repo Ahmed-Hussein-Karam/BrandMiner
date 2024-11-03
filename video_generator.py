@@ -3,8 +3,11 @@ import os
 import random
 import numpy as np
 from PIL import Image
-from moviepy.editor import ImageSequenceClip
+from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_audioclips
+from moviepy.audio.AudioClip import AudioClip
 from pathlib import Path
+
+################################## VIDEO GENERATION ##################################
 
 # Literals
 BRAND = 'brand'
@@ -14,8 +17,9 @@ EMPTY = 'empty'
 # Video Parameters
 hours = 0.02
 sec_per_hr = 3600
+duration_sec = int(hours * sec_per_hr)
 frames_per_sec = 3
-frame_count =  int(hours * sec_per_hr * frames_per_sec)
+frame_count =  duration_sec * frames_per_sec
 frame_size_px = 300
 grid_size = (9, 9)
 
@@ -90,17 +94,67 @@ def draw_frame(grid):
                     img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
     return img
 
-# Generate all frames
-frames = []
-initial_grid = [EMPTY for _ in range(cell_count)]
+def gen_video(audio):
+    # Generate all frames
+    frames = []
+    initial_grid = [EMPTY for _ in range(cell_count)]
 
-print (f"Frame count: {frame_count}")
-for i in range(frame_count):
-    print (f"Frame#: {i}")
-    grid = generate_random_grid(initial_grid)
-    frame = draw_frame(grid)
-    frames.append(np.array(frame))  # Convert to NumPy array
+    print (f"Frame count: {frame_count}")
+    for i in range(frame_count):
+        print (f"Frame#: {i}")
+        grid = generate_random_grid(initial_grid)
+        frame = draw_frame(grid)
+        frames.append(np.array(frame))  # Convert to NumPy array
 
-# Convert frames to an MP4 video
-clip = ImageSequenceClip(frames, fps=frames_per_sec)
-clip.write_videofile("movie.mp4", codec="libx264")
+    # Convert frames to an MP4 video
+    video_clip = ImageSequenceClip(frames, fps=frames_per_sec)
+
+    return video_clip.set_audio(audio)
+
+################################## AUDIO GENERATION ##################################
+
+# Standard audio value
+audio_fps = 44100
+
+brand_audio = {f'{b}': AudioFileClip(str([f for f in Path(os.path.join(brands_path, os.path.join(b, 'audio'))).iterdir() if f.is_file()][0])).set_fps(audio_fps) for b in brands}
+random_statement_audio = AudioFileClip(os.path.join(media_path, 'random_statement.mp3')).set_fps(audio_fps)
+
+min_silence_duration_sec = min(5, duration_sec - 2)
+max_silence_duration_sec = min(60, duration_sec)
+
+def create_silent_clip():
+    clip_duration_sec = random.randint(min_silence_duration_sec, max_silence_duration_sec)
+    return AudioClip(lambda t: 0, duration=clip_duration_sec)
+
+def gen_audio():
+    audio_segments = []
+    curr_audio_duration_sec = 0
+
+    while curr_audio_duration_sec < duration_sec - max_silence_duration_sec + 3:
+        # Append a silent clip
+        audio_segments.append(create_silent_clip())
+        print (f"silent clip of {audio_segments[-1].duration} sec")
+
+        if random.random() < 0.7:
+            # Append a random statement
+            audio_segments.append(random_statement_audio)
+            print (f"stmt clip of {audio_segments[-1].duration} sec")
+        else:
+            # Append a random brand audio clip
+            audio_segments.append(brand_audio[random.choice(brands)])
+            print (f"brand clip of {audio_segments[-1].duration} sec")
+        
+        curr_audio_duration_sec += audio_segments[-1].duration + audio_segments[-2].duration
+
+    # Concatenate all audio segments
+    final_audio_clip = concatenate_audioclips(audio_segments)
+    print (f"Number of audio segments: {len(audio_segments)}")
+
+    return final_audio_clip
+
+if __name__ == "__main__":
+    audio_clip = gen_audio()
+    video_clip = gen_video(audio_clip)
+
+    video_clip.write_videofile("movie.mp4", codec="libx264", audio_codec="aac")
+
