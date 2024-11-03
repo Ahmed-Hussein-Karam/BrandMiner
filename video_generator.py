@@ -52,6 +52,8 @@ scene_imgs = {f'{s}': [f for f in Path(os.path.join(scenes_path, s)).iterdir() i
 background_color = (255, 255, 255)
 line_color = (0, 0, 0)
 
+img_cache = {}
+
 def generate_random_grid(current_grid):
     """Generates a random grid with each cell is 'brand', 'scene', or empty."""
     for i in range(cell_count):
@@ -79,8 +81,13 @@ def draw_frame(grid):
         for col in range(grid_size[1]):
             cell_value = grid[row * grid_size[1] + col]
             if cell_value != EMPTY:
-                cell_img = Image.open(cell_value).convert('RGBA').resize((cell_size, cell_size))
-                img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
+                if cell_value in img_cache:
+                    img.paste(img_cache[cell_value], (col * cell_size, row * cell_size), img_cache[cell_value])
+                else:
+                    cell_img = Image.open(cell_value).convert('RGBA').resize((cell_size, cell_size))
+                    img_cache[cell_value] = cell_img
+
+                    img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
     return img
 
 # Generate all frames
