@@ -1,0 +1,8 @@
+language,text
+English,Choose Opel Cars
+French,Choisissez les voitures Opel
+Japanese,オペル車を選ぶ
+Chinese,選擇歐寶汽車
+Russian,Выбирайте автомобили Opel
+Arabic,اختر سيارات أوبل
+Hindi,ओपल कारें चुनें

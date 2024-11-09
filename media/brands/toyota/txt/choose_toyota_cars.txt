@@ -1,0 +1,8 @@
+language,text
+English,Choose Toyota Cars
+French,Choisissez les voitures Toyota
+Japanese,トヨタ車を選ぶ
+Chinese,選擇豐田汽車
+Russian,Выбирайте автомобили Toyota
+Arabic,اختر سيارات تويوتا
+Hindi,टोयोटा कारें चुनें

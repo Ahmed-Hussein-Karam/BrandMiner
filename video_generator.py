@@ -35,7 +35,6 @@ cell_ttl = [0 for _ in range(cell_count)]
 max_cell_ttl = frames_per_sec * 2
 max_enabled_brands_per_video = 5
 max_brands_per_frame = 2
-max_imgs_per_brand = 5
 
 # Paths
 base_path = os.getcwd()
@@ -54,7 +53,7 @@ brands = random.sample(all_brands, brands_count)
 # where -1 means not rendered
 brand_cell_indices = {f'{b}': [-1] for b in brands}
 
-brand_imgs = {f'{b}': random.sample([f for f in Path(os.path.join(brands_path, b)).iterdir() if f.is_file()], max_imgs_per_brand) for b in brands}
+brand_imgs = {f'{b}': [f for f in Path(os.path.join(brands_path, b)).iterdir() if f.is_file()] for b in brands}
 scene_imgs = {f'{s}': [f for f in Path(os.path.join(scenes_path, s)).iterdir() if f.is_file()] for s in scene_types}
 
 # Colors
