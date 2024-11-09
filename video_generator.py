@@ -44,11 +44,15 @@ media_path = os.path.join(base_path, 'media')
 brands_path = os.path.join(media_path, 'brands')
 scenes_path = os.path.join(media_path, 'scenes')
 
-scene_types = [str(d) for d in Path(scenes_path).iterdir() if d.is_dir()]
-all_brands = [str(d) for d in Path(brands_path).iterdir() if d.is_dir()]
+scene_types = [d.name for d in Path(scenes_path).iterdir() if d.is_dir()]
+all_brands = [d.name for d in Path(brands_path).iterdir() if d.is_dir()]
 
 brands_count = random.randint(1, min(len(all_brands), max_enabled_brands_per_video))
 brands = random.sample(all_brands, brands_count)
+
+# Used to track where the brand was rendered on the screen,
+# where -1 means not rendered
+brand_cell_indices = {f'{b}': [-1] for b in brands}
 
 brand_imgs = {f'{b}': random.sample([f for f in Path(os.path.join(brands_path, b)).iterdir() if f.is_file()], max_imgs_per_brand) for b in brands}
 scene_imgs = {f'{s}': [f for f in Path(os.path.join(scenes_path, s)).iterdir() if f.is_file()] for s in scene_types}
@@ -75,16 +79,28 @@ def generate_random_grid(current_grid, current_img_paths):
             cell_ttl[i] -= 1
             continue
 
+        # When Brand ttl expires, set cell index to -1 (disappear)
+        if current_grid[i] == BRAND:
+            for b in brands:
+                if brand_cell_indices[b][-1] == i: 
+                    brand_cell_indices[b].append(-1)
+                    break
+
         cell_ttl[i] = random.randint(1, max_cell_ttl)
         current_grid[i] = random_cell_types[i]
 
         if current_grid[i] == EMPTY:
             current_img_paths[i] = None
         elif current_grid[i] == BRAND and grid_brands_count < max_brands_per_frame:
-            random_brand = random.choice(brands)
+            # Pick a brand that is not already rendered
+            random_brand = random.choice([b for b in brands if brand_cell_indices[b][-1] == -1])
+
+            brand_cell_indices[random_brand].append(i)
             current_img_paths[i] = random.choice(brand_imgs[random_brand])
+
             grid_brands_count += 1
         else:
+            current_grid[i] = SCENE
             random_scene_type = random.choice(scene_types)
             current_img_paths[i] = random.choice(scene_imgs[random_scene_type])
     
