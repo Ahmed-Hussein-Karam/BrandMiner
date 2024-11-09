@@ -1,26 +1,28 @@
 import os
-
+import csv
 import random
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from moviepy.editor import ImageSequenceClip, AudioFileClip, concatenate_audioclips
 from moviepy.audio.AudioClip import AudioClip
 from pathlib import Path
 
-################################## VIDEO GENERATION ##################################
+import arabic_reshaper  # For Arabic reshaping
+from bidi.algorithm import get_display  # For correct RTL display
+
 
 # Literals
 BRAND = 'brand'
 SCENE = 'scene'
 EMPTY = 'empty'
 
-# Video Parameters
+# Parameters
 hours = 0.02
 sec_per_hr = 3600
 duration_sec = int(hours * sec_per_hr)
 frames_per_sec = 3
 frame_count =  duration_sec * frames_per_sec
-frame_size_px = 300
+frame_size_px = 900
 grid_size = (9, 9)
 
 cell_count = grid_size[0] * grid_size[1]
@@ -39,6 +41,7 @@ max_brands_per_frame = 2
 # Paths
 base_path = os.getcwd()
 media_path = os.path.join(base_path, 'media')
+fonts_path = os.path.join(base_path, 'fonts')
 
 brands_path = os.path.join(media_path, 'brands')
 scenes_path = os.path.join(media_path, 'scenes')
@@ -61,6 +64,57 @@ background_color = (255, 255, 255)
 line_color = (0, 0, 0)
 
 img_cache = {}
+brand_statements_dict = {f'{b}': {} for b in brands}
+
+################################### INITIALIZATION ###################################
+
+def load_csv_files():
+    for b in brands:
+        txt_path = Path(os.path.join(brands_path, os.path.join(b, 'txt')))
+        csv_files = [f for f in txt_path.iterdir() if f.is_file() and f.name.endswith('.csv')]
+
+        if len(csv_files) == 0:
+            print(f"[WARN] No CSV files found for '{b}'")
+            continue
+
+        with open(csv_files[0], mode='r', newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                brand_statements_dict[b][row['language']] = row['text']
+
+################################## VIDEO GENERATION ##################################
+
+def add_txt_to_image(img, txt):
+    try:
+        font = ImageFont.truetype(os.path.join(fonts_path, "default.ttf"), 24)
+    except IOError:
+        print("Font file not found. Ensure you have Noto Sans with language support.")
+        font = ImageFont.load_default(size=24)
+
+    txt_color = (255, 255, 255)
+    txt_background = (0 ,0 , 0)
+    txt_bar_height = 50
+    txt_padding_top_px = 5
+    
+    # Calculate txt size
+    bbox = font.getbbox(txt)
+    txt_width = bbox[2] - bbox[0]
+
+    new_height = frame_size_px + txt_bar_height
+
+    new_img = Image.new('RGB', (frame_size_px, new_height), txt_background)
+    new_img.paste(img, (0, 0))
+
+    # Draw the txt centered below the image
+    draw = ImageDraw.Draw(new_img)
+    txt_x = (frame_size_px - txt_width) // 2
+    txt_y = frame_size_px + txt_padding_top_px
+
+    txt = get_display(arabic_reshaper.reshape(txt))
+    print(txt)
+    draw.text((txt_x, txt_y), txt, fill=txt_color, font=font)
+
+    return new_img
 
 def generate_random_grid(current_grid, current_img_paths):
     """Generates a random grid with each cell is 'brand', 'scene', or empty."""
@@ -87,12 +141,14 @@ def generate_random_grid(current_grid, current_img_paths):
 
         cell_ttl[i] = random.randint(1, max_cell_ttl)
         current_grid[i] = random_cell_types[i]
+        
+        # Avoid rendering a brand more than once in the same frame
+        non_rendered_brands = [b for b in brands if brand_cell_indices[b][-1] == -1]
 
         if current_grid[i] == EMPTY:
             current_img_paths[i] = None
-        elif current_grid[i] == BRAND and grid_brands_count < max_brands_per_frame:
-            # Pick a brand that is not already rendered
-            random_brand = random.choice([b for b in brands if brand_cell_indices[b][-1] == -1])
+        elif current_grid[i] == BRAND and grid_brands_count < max_brands_per_frame and len(non_rendered_brands) > 0:
+            random_brand = random.choice(non_rendered_brands)
 
             brand_cell_indices[random_brand].append(i)
             current_img_paths[i] = random.choice(brand_imgs[random_brand])
@@ -105,8 +161,8 @@ def generate_random_grid(current_grid, current_img_paths):
     
     return (current_grid, current_img_paths)
 
-def draw_frame(grid_img_paths):
-    """Draws a single frame of the tic-tac-toe grid using image files for 'X' and 'O'."""
+def create_frame(grid_img_paths):
+    """Creates a single frame rendering the images pointed to by grid image paths."""
     img = Image.new('RGB', (frame_size_px, frame_size_px), background_color)
 
     for row in range(grid_size[0]):
@@ -120,9 +176,21 @@ def draw_frame(grid_img_paths):
                     img_cache[cell_value] = cell_img
 
                     img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
+
+    img_txt = ' '
+    if random.random() > 0.9:
+        print ("Adding txt to frame")
+
+        # Write a random brand marketing statement
+        selected_brand = random.choice(brands)
+        selected_lang = random.choice(list(brand_statements_dict[selected_brand].keys()))
+        img_txt = brand_statements_dict[selected_brand][selected_lang]
+        
+    img = add_txt_to_image(img, img_txt)
+
     return img
 
-def gen_video(audio):
+def generate_video(audio):
     # Generate all frames
     frames = []
     grid = [EMPTY for _ in range(cell_count)]
@@ -132,7 +200,8 @@ def gen_video(audio):
     for i in range(frame_count):
         print (f"Frame#: {i}")
         (grid, grid_img_paths) = generate_random_grid(grid, grid_img_paths)
-        frame = draw_frame(grid_img_paths)
+        frame = create_frame(grid_img_paths)
+
         frames.append(np.array(frame))  # Convert to NumPy array
 
     # Convert frames to an MP4 video
@@ -155,7 +224,7 @@ def create_silent_clip():
     clip_duration_sec = random.randint(min_silence_duration_sec, max_silence_duration_sec)
     return AudioClip(lambda t: 0, duration=clip_duration_sec)
 
-def gen_audio():
+def generate_audio():
     audio_segments = []
     curr_audio_duration_sec = 0
     statement_count = 0
@@ -179,13 +248,14 @@ def gen_audio():
 
     # Concatenate all audio segments
     final_audio_clip = concatenate_audioclips(audio_segments)
-    print (f"Number of statements in audio track: {len(statement_count)}")
+    print (f"Number of statements in audio track: {statement_count}")
 
     return final_audio_clip
 
 if __name__ == "__main__":
-    audio_clip = gen_audio()
-    video_clip = gen_video(audio_clip)
+    load_csv_files()
+    audio_clip = generate_audio()
+    video_clip = generate_video(audio_clip)
 
     video_clip.write_videofile("movie.mp4", codec="libx264", audio_codec="aac")
 

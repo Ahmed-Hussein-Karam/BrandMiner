@@ -1,8 +1,0 @@
-language,text
-English,Choose Volkswagen Cars
-French,Choisissez les voitures Volkswagen
-Japanese,フォルクスワーゲンの車を選ぶ
-Chinese,選擇大眾汽車
-Russian,Выбирайте автомобили Volkswagen
-Arabic,اختر سيارات فولكس فاجن
-Hindi,वोक्सवैगन कारें चुनें

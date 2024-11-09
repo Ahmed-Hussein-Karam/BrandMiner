@@ -1,8 +1,0 @@
-language,text
-English,Choose Lexus Cars
-French,Choisissez les voitures Lexus
-Japanese,レクサス車を選ぶ
-Chinese,選擇雷克薩斯汽車
-Russian,Выбирайте автомобили Lexus
-Arabic,اختر سيارات لكزس
-Hindi,लेक्सस कारें चुनें

@@ -1,8 +1,0 @@
-language,text
-English,Choose Mazda Cars
-French,Choisissez les voitures Mazda
-Japanese,マツダ車を選ぶ
-Chinese,選擇馬自達汽車
-Russian,Выбирайте автомобили Mazda
-Arabic,اختر سيارات مازدا
-Hindi,माज़दा कारें चुनें

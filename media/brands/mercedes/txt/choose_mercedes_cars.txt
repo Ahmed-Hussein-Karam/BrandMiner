@@ -1,8 +1,0 @@
-language,text
-English,Choose Mercedes Cars
-French,Choisissez les voitures Mercedes
-Japanese,メルセデスカーを選ぶ
-Chinese,選擇梅賽德斯汽車
-Russian,Выбирайте автомобили Mercedes
-Arabic,اختر سيارات مرسيدس
-Hindi,मर्सिडीज कारें चुनें
