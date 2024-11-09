@@ -159,6 +159,7 @@ def create_silent_clip():
 def gen_audio():
     audio_segments = []
     curr_audio_duration_sec = 0
+    statement_count = 0
 
     while curr_audio_duration_sec < duration_sec - max_silence_duration_sec + 3:
         # Append a silent clip
@@ -168,7 +169,8 @@ def gen_audio():
         if random.random() < 0.7:
             # Append a random statement
             audio_segments.append(random_statement_audio)
-            print (f"stmt clip of {audio_segments[-1].duration} sec")
+            statement_count += 1
+            print (f"statement clip of {audio_segments[-1].duration} sec")
         else:
             # Append a random brand audio clip
             audio_segments.append(brand_audio[random.choice(brands)])
@@ -178,7 +180,7 @@ def gen_audio():
 
     # Concatenate all audio segments
     final_audio_clip = concatenate_audioclips(audio_segments)
-    print (f"Number of audio segments: {len(audio_segments)}")
+    print (f"Number of statements in audio track: {len(statement_count)}")
 
     return final_audio_clip
 
