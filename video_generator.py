@@ -26,7 +26,7 @@ grid_size = (9, 9)
 cell_count = grid_size[0] * grid_size[1]
 cell_size = frame_size_px // grid_size[0]  # Size of each cell in the grid
 cell_types = [BRAND, SCENE, EMPTY]
-cell_types_probabilities = [0.1, 0.8, 0.1]
+cell_types_probabilities = [0.05, 0.8, 0.15]
 
 # When a cell ttl expires, a new random ttl is set for that cell
 cell_ttl = [0 for _ in range(cell_count)]
@@ -34,6 +34,7 @@ cell_ttl = [0 for _ in range(cell_count)]
 # Constants
 max_cell_ttl = frames_per_sec * 2
 max_enabled_brands_per_video = 5
+max_brands_per_frame = 2
 max_imgs_per_brand = 5
 
 # Paths
@@ -58,33 +59,45 @@ line_color = (0, 0, 0)
 
 img_cache = {}
 
-def generate_random_grid(current_grid):
+def generate_random_grid(current_grid, current_img_paths):
     """Generates a random grid with each cell is 'brand', 'scene', or empty."""
-    for i in range(cell_count):
+    random_cell_types = random.choices(cell_types, weights=cell_types_probabilities, k=cell_count)
+
+    grid_brands_count = sum(
+        1
+        for i in range(len(current_grid))
+        if current_grid[i] == BRAND and cell_ttl[i] > 0
+    )
+
+    # Loop cells in random order
+    for i in random.sample(range(0, cell_count), cell_count):
         if cell_ttl[i] > 0:
             cell_ttl[i] -= 1
             continue
 
         cell_ttl[i] = random.randint(1, max_cell_ttl)
-        current_grid[i] = random.choices(cell_types, weights=cell_types_probabilities, k=1)[0]
+        current_grid[i] = random_cell_types[i]
 
-        if current_grid[i] == BRAND:
+        if current_grid[i] == EMPTY:
+            current_img_paths[i] = None
+        elif current_grid[i] == BRAND and grid_brands_count < max_brands_per_frame:
             random_brand = random.choice(brands)
-            current_grid[i] = random.choice(brand_imgs[random_brand])
-        elif current_grid[i] == SCENE:
+            current_img_paths[i] = random.choice(brand_imgs[random_brand])
+            grid_brands_count += 1
+        else:
             random_scene_type = random.choice(scene_types)
-            current_grid[i] = random.choice(scene_imgs[random_scene_type])
+            current_img_paths[i] = random.choice(scene_imgs[random_scene_type])
     
-    return current_grid
+    return (current_grid, current_img_paths)
 
-def draw_frame(grid):
+def draw_frame(grid_img_paths):
     """Draws a single frame of the tic-tac-toe grid using image files for 'X' and 'O'."""
     img = Image.new('RGB', (frame_size_px, frame_size_px), background_color)
 
     for row in range(grid_size[0]):
         for col in range(grid_size[1]):
-            cell_value = grid[row * grid_size[1] + col]
-            if cell_value != EMPTY:
+            cell_value = grid_img_paths[row * grid_size[1] + col]
+            if cell_value != None:
                 if cell_value in img_cache:
                     img.paste(img_cache[cell_value], (col * cell_size, row * cell_size), img_cache[cell_value])
                 else:
@@ -97,13 +110,14 @@ def draw_frame(grid):
 def gen_video(audio):
     # Generate all frames
     frames = []
-    initial_grid = [EMPTY for _ in range(cell_count)]
+    grid = [EMPTY for _ in range(cell_count)]
+    grid_img_paths = [None for _ in range(cell_count)]
 
     print (f"Frame count: {frame_count}")
     for i in range(frame_count):
         print (f"Frame#: {i}")
-        grid = generate_random_grid(initial_grid)
-        frame = draw_frame(grid)
+        (grid, grid_img_paths) = generate_random_grid(grid, grid_img_paths)
+        frame = draw_frame(grid_img_paths)
         frames.append(np.array(frame))  # Convert to NumPy array
 
     # Convert frames to an MP4 video
