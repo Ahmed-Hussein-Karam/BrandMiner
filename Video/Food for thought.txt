@@ -1,0 +1,46 @@
+Summary:
+=======
+Input: Video or series of videos
+Dataset: Search for existing dataset or Generate dataset
+Event tracked/analyzed: brand logos / brand mentioned (voice)
+
+Usage:
+=====
+* Brand Exposure Tracking
+	- Quantity
+	- Quality (position on screen, Clarity within the scene, appearance timing)
+* Content moderation and Brand Safety: verify if brands are appearing in a safe and approved context.
+* Compliance with Regulations: e.g. children's content
+* Metrics checking (e.g. SLAs[total screen time - ...], Rules/Regulations): This allows advertisers and brands to verify that their contractual placements were fully executed.
+* Ad-Hook and What-If queries
+* Financial:
+	- ROI measurement: Advertisers can quantify the value of their placements by understanding not just the frequency but the quality of brand appearances
+	- Providing a way for creators to charge higher rates for highly visible Brand placements.
+	- Proof of Performance for Payment Release: For advertisers and vendors working on performance-based contracts, advertisers only pay when placements meet contract requirements, helping both parties avoid payment disputes.
+	- Automated Reporting and Billing: Integrating this with billing systems could allow for automated invoicing based on Brand exposure quality/quantity.
+	- Brand Impact on Consumer Perception Studies: you could provide a financial model for brands to understand the soft impact of placements on customer brand perception.
+
+Sample queries:
+==============
+•	Brands dashboard
+	o	Ranking
+•	Appearance analysis:
+	o	Spatial (left- center - …)
+			Heatmap
+			Bias/average location
+	o	Statistical
+			(max – avg – min - length )
+			Longest/ Shortest
+	o	Timely (beginning – mid – distribution over time - … )
+	o	Media
+			Spoken
+			Visual
+	o	Edit (Addition/Removal)
+	o	Validation against set of rules
+			Examples:
+•	Min/Max time
+•	Non-permitted brands
+	o	What if queries:
+			Examples:
+•	Suggest place to add logo of [[Brand]]
+•	…
