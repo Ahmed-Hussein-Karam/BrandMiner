@@ -12,26 +12,26 @@ Does it capture the viewer's attention… or go completely unnoticed?
 
 Until now, brand tracking has been vague, reactive, and challenging to accurately measure.
 
-And there comes our Kaggle Notebook "BrandMiner".
+And there comes our idea "BrandMiner".
 
-BrandMiner uses the power of Google Generative AI to track brand exposure in video content whether visual, textual, or in dialogue — so you can get immediate answers to questions like…”
+BrandMiner is a Kaggle Notebook that uses the power of Google Generative AI to track brand exposure in video content..
+whether visual, in dialogue or textual — so you can get immediate answers to enquiries like:
 
-
-* What Brands appear in this video?
+* What Brands appeared in this video?
 * Rank brands by total screen time.
 * How many times was the name of brand X spoken in Dialogue?
-* reate a 3x3 heatmap grid showing screen positions where Brand X appeared.
+* Create a 3x3 heatmap grid showing screen positions where Brand X appeared.
 * Spot brand exposure violations in this video according to (SLA terms: A,B,C or set of regulations: D,E,F)
 * Other Ad-Hook and What-If inqueries
 
 Dataset:
 
-To test BrandMiner, we used MoviePy to generate video content as follows:
+To test BrandMiner, we used MoviePy to generate video content, so that:
 
-- Each frame in the video is considered as a grid, with cells composing together a scene.
-- Cells render image sequences that alternate frame by frame, with some frames displaying car Logos in a random position on the screen.
-- The Audio track includes a mock dialogue where car brand names may be spoken from time to time.
+- Each frame in the video is a grid, with cells composing together a scene.
+- Cells render image sequences that alternate frame by frame, with some car Logos displayed randomly on the screen.
 - Some Frames also have subtitles marketing for some car brands in various languages (English - Hindi - Japanese - Arabic - ...)
+- The Audio track may also include a mock dialogue where car brand names are mentioned from time to time.
 - The average video duration is around 3-4 hours.. this is equivalent to a fairly long movie
 
 
