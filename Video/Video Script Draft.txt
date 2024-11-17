@@ -34,7 +34,6 @@ To test BrandMiner, we used MoviePy to generate video content, so that:
 - The Audio track may also include a mock dialogue where car brand names are mentioned from time to time.
 - The average video duration is around 3-4 hours.. this is equivalent to a fairly long movie
 
-
 BrandMiner empowers businesses, by introducing a seamless way for:
 
 * Brand Exposure Tracking: by gaining valuable insights into brand visibility and reach.
@@ -48,6 +47,7 @@ BrandMiner empowers businesses, by introducing a seamless way for:
 
 Outro:
 ======
-Unlock the full potential of your brand with BrandMiner. Because in today's competitive landscape, knowledge ..is power!
+In today's competitive landscape, knowledge ..is power!
+Use BrandMiner.. Unlock the full potential of your brand.
 
 BrandMiner Logo and Slogan
