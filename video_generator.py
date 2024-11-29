@@ -17,10 +17,10 @@ SCENE = 'scene'
 EMPTY = 'empty'
 
 # Parameters
-hours = 0.02
+hours = 3
 sec_per_hr = 3600
 duration_sec = int(hours * sec_per_hr)
-frames_per_sec = 3
+frames_per_sec = 2
 frame_count =  duration_sec * frames_per_sec
 frame_size_px = 900
 grid_size = (9, 9)
@@ -28,7 +28,7 @@ grid_size = (9, 9)
 cell_count = grid_size[0] * grid_size[1]
 cell_size = frame_size_px // grid_size[0]  # Size of each cell in the grid
 cell_types = [BRAND, SCENE, EMPTY]
-cell_types_probabilities = [0.05, 0.8, 0.15]
+cell_types_probabilities = [0.01, 0.75, 0.24]
 
 # When a cell ttl expires, a new random ttl is set for that cell
 cell_ttl = [0 for _ in range(cell_count)]
@@ -49,7 +49,7 @@ scenes_path = os.path.join(media_path, 'scenes')
 scene_types = [d.name for d in Path(scenes_path).iterdir() if d.is_dir()]
 all_brands = [d.name for d in Path(brands_path).iterdir() if d.is_dir()]
 
-brands_count = random.randint(1, min(len(all_brands), max_enabled_brands_per_video))
+brands_count = random.randint(2, min(len(all_brands), max_enabled_brands_per_video))
 brands = random.sample(all_brands, brands_count)
 
 # Used to track where the brand was rendered on the screen,
@@ -178,7 +178,7 @@ def create_frame(grid_img_paths):
                     img.paste(cell_img, (col * cell_size, row * cell_size), cell_img)
 
     img_txt = ' '
-    if random.random() > 0.9:
+    if random.random() > 0.975:
         print ("Adding txt to frame")
 
         # Write a random brand marketing statement
